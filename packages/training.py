@@ -57,7 +57,7 @@ def extract_xy_fn(x):
 
 # Define the preprocessing function
 def preprocessing(x):
-    img = cv2.resize(x, dsize=(128, 128), interpolation=cv2.INTER_CUBIC)
+    img = cv2.resize(x, dsize=(64, 64), interpolation=cv2.INTER_CUBIC)
     return img
 
 
@@ -98,8 +98,8 @@ if False:
 
 # Create HOG Descriptors for each set with some different parameters to 'grid-search' the best parameters
 # for the HOG Descriptor. So lets create some ranges for num orientations, pixels_per_cell, cells_per_block and norm:
-normalize = [True, False]
-orientations = [8, 12, 16]
+normalize = [False]
+orientations = [9, 11]
 pixels_per_cell = [(8, 8), (16, 16), (32, 32)]
 cells_per_block = [(1, 1), (2, 2)]
 
