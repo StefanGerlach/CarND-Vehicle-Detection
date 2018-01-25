@@ -73,4 +73,4 @@ class BatchGenerator(kgenerators.Iterator):
             batch_y.append(target)
 
         assert len(batch_x) == len(batch_y)
-        return np.array(batch_x, dtype=np.float32), np.array(batch_y, dtype=np.float32)
+        return np.array(batch_x, dtype=np.float32), np.array(batch_y, dtype=np.uint8)
