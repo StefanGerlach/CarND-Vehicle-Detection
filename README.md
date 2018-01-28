@@ -46,6 +46,7 @@ In the following section I want to explain how I trained a Support Vector Machin
 
 My [training pipeline](packages/training.py) consists of the following steps:
 
+
 ### Data Reading
 * Read directories with images, ordered by classes.
 * Randomly dublicate images until both classes are equally distributed.
@@ -99,6 +100,44 @@ So I created a list for every possible parameter and created all possible permut
 With the help of the **BatchGenerator**, I iterated n-times (n=2) over the complete training-set and invoked every created instance of the SlidingWindowFeatureExtractor class to compute the features.
 
 After this process, for every parameter-set I have a list of training features, training labels, validation features and validation labels. These information are stored in a dictionary-structure and is stored on the filesystem with the help of the **pickle**-API (*feature_permutation_checkpoint.picklefile*).
+
+
+### Feature Scaling
+
+Since the features have different value range, a preprocessing step on the features is needed. **This step is essential to train a classifier on them**. With the help of the Scikit-learn class **StandardScaler**, all features can be zero-centered and scaled to have unit variance. 
+
+So, for every parameter-set I called the **fit()**-function on the training features and created a fitted StandardScaler-object this way. The training features and validation features are transformed with this StandardScaler, for every parameter-set-features individually.
+
+
+### Training a classifier
+
+So at this point of the training pipeline there are different parameter-sets, each coupled with a list of training and validation features. With a simple iteration over these parameter-sets I created the following classifiers:
+* Logistic Regression Classifier
+* DecisionTree Classifier
+* AdaBoost Classifier
+* SVM
+
+For every classifier I called the **fit()**-function on the current training features plus labels and **score()** on the validation features plus labels. This way, I could evaluate the parameter-set and the classifiers, since **score()** returns the mean accuracy over the validation set.
+
+
+### Best combination of features and classifier
+
+I ended up that the following combination of feature extraction parameters and classifer:
+
+| Parameter | Value |
+| :------- | :---------- |
+| classifier | SVM |
+| bin_spatial_size | (32, 32) |
+| bin_spatial_color_cvt | Keep RGB |
+| color_channel_hist_bins | 32 |
+| color_hist_color_cvt | RGB2HSV |
+| hog_compute | True |
+| hog_color_cvt | Keep RGB |
+| hog_channels | All |
+| hog_orient | 8 |
+| hog_px_per_cell | (8, 8) |
+| hog_cells_per_blk | (2, 2) | 
+| hog_norm | True |
 
 
 
