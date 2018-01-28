@@ -140,6 +140,12 @@ I ended up that the following combination of feature extraction parameters and c
 | hog_norm | True |
 
 
+All tested combinations I dump to filesystem, for later usage during video frame analysis. Every combination consists of the following objects that can be read from filesystem:
+* StandardScaler (fitted on the respective training features)
+* LabelEncoder
+* FeatureExtractor (SlidingWindowFeatureExtractor) object
+* Classifier objects (as list of tuples: classifier object, mean accuracy)
+
 
 
 ```python
