@@ -4,8 +4,22 @@
 [//]: # (Image References)
 
 [image1]: ./output_images/main_image.png "Splash"
+[image2]: ./output_images/original_frame.png "Frame"
+[image3]: ./output_images/frame_ROI.png "Frame ROI"
+[image4]: ./output_images/frame_ROI_scale_0.5.png "Frame ROI Scaled 1"
+[image5]: ./output_images/frame_ROI_scale_0.25.png "Frame ROI Scaled 2"
+[image6]: ./output_images/frame_ROI_scale_0.1875.png "Frame ROI Scaled 3"
+[image7]: ./output_images/grid_no_overlap.png "Grid"
+[image8]: ./output_images/features_unscaled.png "Feature Vector unscaled"
+[image9]: ./output_images/features_scaled.png "Feature Vector scaled"
+[image10]: ./output_images/raw_detections.png "Grid detections"
+[image11]: ./output_images/heatmap_detections.png "Grid heatmap"
+[image12]: ./output_images/binarized_heatmap_detections.png "Grid heatmap binarization"
+[image13]: ./output_images/filtered_detections.png "Filtered Grid detections"
+[image14]: ./output_images/original_frame_detections.png "Frame with car detection"
 
-[![Youtube Link][image7]](https://youtu.be/iSw3WAGySTk "Udacity Self Driving Car ND Project 4 - Advanced Lane Finding")
+
+[![Youtube Link][image15]](https://youtu.be/iSw3WAGySTk "Udacity Self Driving Car ND Project 4 - Advanced Lane Finding")
 
 In this repository I describe my approach to write a software pipeline that identifies other vehicles in a video file. The precise requirements of this project are:
 
@@ -52,7 +66,7 @@ My [training pipeline](packages/training.py) consists of the following steps:
 * Randomly dublicate images until both classes are equally distributed.
 * Random split the dataset into training and validation images.
 
-I created the class **ClassEqualizer** to do this. Within this class, glob is used for directory reading and Scikit-learn for the train-test-split. After splitting, I arrange the datasets as tuples of lists: (train_x, train_y) and (val_x, val_y), where the labels have been translated into integers by Scikit-learn **LabelEncoder**.
+I created the class **ClassEqualizer** to do this. Within this class, glob is used for directory reading and Scikit-learn for the train-test-split with 5 % for validation. After splitting, I arrange the datasets as tuples of lists: (train_x, train_y) and (val_x, val_y), where the labels have been translated into integers by Scikit-learn **LabelEncoder**.
 
 
 ### Data Preprocessing and Feeding
@@ -106,6 +120,8 @@ After this process, for every parameter-set I have a list of training features, 
 
 Since the features have different value range, a preprocessing step on the features is needed. **This step is essential to train a classifier on them**. With the help of the Scikit-learn class **StandardScaler**, all features can be zero-centered and scaled to have unit variance. 
 
+![Unscaled features][image8] ![Scaled features][image9]
+
 So, for every parameter-set I called the **fit()**-function on the training features and created a fitted StandardScaler-object this way. The training features and validation features are transformed with this StandardScaler, for every parameter-set-features individually.
 
 
@@ -122,7 +138,7 @@ For every classifier I called the **fit()**-function on the current training fea
 
 ### Best combination of features and classifier
 
-I ended up that the following combination of feature extraction parameters and classifer:
+I ended up that the following combination of feature extraction parameters and classifer with mean accuracy of 99.44 %:
 
 | Parameter | Value |
 | :------- | :---------- |
@@ -140,11 +156,20 @@ I ended up that the following combination of feature extraction parameters and c
 | hog_norm | True |
 
 
-All tested combinations I dump to filesystem, for later usage during video frame analysis. Every combination consists of the following objects that can be read from filesystem:
+All tested combinations are dumped to filesystem, for later usage during video frame analysis. Every combination consists of the following objects that can be read from filesystem:
+
 * StandardScaler (fitted on the respective training features)
 * LabelEncoder
 * FeatureExtractor (SlidingWindowFeatureExtractor) object
 * Classifier objects (as list of tuples: classifier object, mean accuracy)
+
+To read the file I use my class [**CompetitionClassifierLoader**](packages/classify.py)
+
+
+
+## Video Frame Processing Pipeline
+
+To use the trained classifier
 
 
 
