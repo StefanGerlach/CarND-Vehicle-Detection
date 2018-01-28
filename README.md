@@ -190,6 +190,23 @@ On every subsampled ROI-image, I lay a grid of overlapping rectangles. To create
 ![Grid][image7]
 
 
+Whereas on every scale and every rectangle the features are extracted and classified. The following image shows the raw detections of 'vehicles' within the frame ROI:
+
+![Raw detections][image10]
+
+
+To filter and merge the detections of cars in the ROI, I create the heatmap by adding a value of 1 into an image for every detection rectangle. The result looks like this:
+
+![Detections heatmap][image11]
+
+
+Afterwards, a thresholding function is applied to binarize the heatmap:
+
+![Binarzied heatmap][image12]
+
+
+In that binary image the contours are detected with OpenCV **findContours()**-function. To merge rectangles, I check what rectangles "share" pixels of a detected contour for a given percentage of pixels. All rectangles that share pixels on a contour, are merged and the bounding box around them is calculated in [**filter_dectections()**](packages/sliding_window_filter.py)
+
 
 
 ```python
