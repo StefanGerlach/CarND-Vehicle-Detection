@@ -59,23 +59,46 @@ I created the class **ClassEqualizer** to do this. Within this class, glob is us
   * Shuffle images
   * Preprocess and augment the images
 
-For feeding the images to the feature extractor in the next step, I recylced my **BatchGenerator** class from Behavioral Cloning project. This enables the usage of **ImageAugmenter** class to augment the images. This will help to compensate that training images are from time series and may cause overfitting during training.
+For feeding the images to the feature extractor in the next step, I recylced my [**BatchGenerator**](packages/batchgenerator.py) class from Behavioral Cloning project. This enables the usage of [**ImageAugmenter**](packages/imageaugmentation.py) class to augment the images. This will help to compensate that the training images are from time series and this may cause overfitting during training.
 
 I enabled the following augmentation functions for this project:
 
 | Function | Probability to occur | Parameter |
 | :-------- | :-------------------- | :--------- |
-| Gaussian Noise | 0.1 | / |
-| Simplex Noise for local intensity shift | 0.1 | multiply pixel values with 0.7 |
-| Average Blur | 0.1 | Kernel size 7 |
-| Contrast Normalization | 0.1 | Alpha = 0.5 |
-| Contrast Normalization | 0.1 | Alpha = 1.5 |
+| Gaussian Noise | 0.2 | / |
+| Simplex Noise for local intensity shift | 0.2 | multiply pixel values with 0.7 |
+| Average Blur | 0.2 | Kernel size 3 |
+| Contrast Normalization | 0.2 | Alpha = 0.75 |
+| Contrast Normalization | 0.2 | Alpha = 1.25 |
 | Flip Left-Right | 0.5 | / |
-| Random Cropping | 0.1 | Max border cut (4, 4, 4, 4) |
-| Multiply image | 0.1 | Factor 0.5 |
-| Multiply image | 0.1 | Factor 1.5 |
+| Random Cropping | 0.2 | Max border cut (4, 4, 4, 4) |
+| Multiply image | 0.2 | Factor 0.75 |
+| Multiply image | 0.2 | Factor 1.25 |
 
 
+### Feature Extraction
+
+The next step includes the extraction of features from the training and validation images. To find the best features I created the class [**SlidingWindowFeatureExtractor**](packages/feature_extraction.py) which is instantiated with the complete set of parameters as arguments:
+
+| Argument | Description |
+| :------- | :---------- |
+| bin_spatial_size | To use raw pixel data with binning. |
+| bin_spatial_color_cvt | E.g. cv2.COLOR_RGB2HSV to use different color spaces for spatial features. |
+| color_channel_hist_bins | If not None, it's the number of color histogram bins. |
+| color_hist_color_cvt | E.g. cv2.COLOR_RGB2HSV to use different color space for color histogram features |
+| hog_compute | Bool: True for computing Histogram of Oriented Gradients |
+| hog_color_cvt | E.g. cv2.COLOR_RGB2HSV to use different color space for HOG features |
+| hog_channels | List of channels where HOG features should be computed |
+| hog_orient | The number of HOG orientations |
+| hog_px_per_cell | The number of pixels per HOG cell |
+| hog_cells_per_blk | The number of cells per HOG blocks | 
+| hog_norm | To use normalization (hog transform_sqrt) |
+
+So I created a list for every possible parameter and created all possible permutations in a big, nested for-loop. For every parameter-set that is created this way (**Grid-search**), an instance of the **SlidingWindowFeatureExtractor** is created. 
+
+With the help of the **BatchGenerator**, I iterated n-times (n=2) over the complete training-set and invoked every created instance of the SlidingWindowFeatureExtractor class to compute the features.
+
+After this process, for every parameter-set I have a list of training features, training labels, validation features and validation labels. These information are stored in a dictionary-structure and is stored on the filesystem with the help of the **pickle**-API (*feature_permutation_checkpoint.picklefile*).
 
 
 
@@ -83,3 +106,6 @@ I enabled the following augmentation functions for this project:
 ```python
 
 ```
+
+
+
