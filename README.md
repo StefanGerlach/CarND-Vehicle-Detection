@@ -3,7 +3,7 @@
 
 [//]: # (Image References)
 
-[image1]: ./output_images/main_image.png "Splash"
+[image1]: ./output_images/splash.png "Splash"
 [image2]: ./output_images/original_frame.png "Frame"
 [image3]: ./output_images/frame_ROI.png "Frame ROI"
 [image4]: ./output_images/frame_ROI_scale_0.5.png "Frame ROI Scaled 1"
@@ -19,7 +19,8 @@
 [image14]: ./output_images/original_frame_detections.png "Frame with car detection"
 
 
-[![Youtube Link][image15]](https://youtu.be/iSw3WAGySTk "Udacity Self Driving Car ND Project 4 - Advanced Lane Finding")
+[![Youtube Link][image1]](https://youtu.be/lwnCYVOESOQ "Udacity Self Driving Car ND Project 5 - Vehicle Detection")
+
 
 In this repository I describe my approach to write a software pipeline that identifies other vehicles in a video file. The precise requirements of this project are:
 
@@ -209,9 +210,16 @@ In that binary image the contours are detected with OpenCV **findContours()**-fu
 
 
 
-```python
+## Reflection
 
-```
+Drawbacks:
+* Long process of 'feature-engineering'.
+* Implemented pipeline extremely slow.
+* Alot of false positives.
 
+To overcome these problems one might try:
+* Use a convolutional neural network that 'learns' to extract the features itself.
+* A small CNN might be faster as well. Using a fully convolutional neural network would generate the heatmap.
+* A CNN might be more precise as well.
 
 
