@@ -7,8 +7,8 @@
 [image2]: ./output_images/original_frame.png "Frame"
 [image3]: ./output_images/frame_ROI.png "Frame ROI"
 [image4]: ./output_images/frame_ROI_scale_0.5.png "Frame ROI Scaled 1"
-[image5]: ./output_images/frame_ROI_scale_0.25.png "Frame ROI Scaled 2"
-[image6]: ./output_images/frame_ROI_scale_0.1875.png "Frame ROI Scaled 3"
+[image5]: ./output_images/frame_ROI_Scaled_0.25.png "Frame ROI Scaled 2"
+[image6]: ./output_images/frame_ROI_Scaled_0.1875.png "Frame ROI Scaled 3"
 [image7]: ./output_images/grid_no_overlap.png "Grid"
 [image8]: ./output_images/features_unscaled.png "Feature Vector unscaled"
 [image9]: ./output_images/features_scaled.png "Feature Vector scaled"
@@ -169,7 +169,43 @@ To read the file I use my class [**CompetitionClassifierLoader**](packages/class
 
 ## Video Frame Processing Pipeline
 
-To use the trained classifier
+To use the trained classifier, the class [**CompetitionClassifierLoader**](packages/classify.py) loads the best performing classifier plus Scaler and LabelEncoder from file. For every incoming video frame, the following pipeline is processed:
+
+
+### Image Preprocessing
+
+To improve performance I use a ROI of the original image where vehicles can occur (cut away sky pixels). The next image visualizes the original frame and the ROI of that frame:
+
+![Frame][image2]
+![Frame ROI][image3]
+
+Additionally, for having different detection scales, I use the following scales for subsampling the image: 0.5, 0.25, 0.1875. 
+
+![Frame ROI Scaled 1][image4]
+![Frame ROI Scaled 2][image5]
+![Frame ROI Scaled 3][image6]
+
+On every subsampled ROI-image, I lay a grid of overlapping rectangles. To create that grid, I implemented the class [**SlidingWindows**](packages/image_sliding_windows.py) where I can define the grid tile-size and the overlap. The next image visualizes the created grid without overlap (for better visibility):
+
+![Grid][image7]
+
+
+Whereas on every scale and every rectangle the features are extracted and classified. The following image shows the raw detections of 'vehicles' within the frame ROI:
+
+![Raw detections][image10]
+
+
+To filter and merge the detections of cars in the ROI, I create the heatmap by adding a value of 1 into an image for every detection rectangle. The result looks like this:
+
+![Detections heatmap][image11]
+
+
+Afterwards, a thresholding function is applied to binarize the heatmap:
+
+![Binarzied heatmap][image12]
+
+
+In that binary image the contours are detected with OpenCV **findContours()**-function. To merge rectangles, I check what rectangles "share" pixels of a detected contour for a given percentage of pixels. All rectangles that share pixels on a contour, are merged and the bounding box around them is calculated in [**filter_dectections()**](packages/sliding_window_filter.py)
 
 
 
