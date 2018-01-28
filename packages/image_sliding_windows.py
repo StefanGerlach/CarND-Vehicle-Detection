@@ -22,7 +22,7 @@ class SlidingWindows(object):
         debug_paint = False
 
         # List with all shapes
-        shape_sizes = [min_shape, max_shape]
+        shape_sizes = [min_shape, max_shape] if min_shape != max_shape else [min_shape]
 
         # Dictionary with shapes and respective rectangles in grid
         grids = {}
@@ -63,10 +63,10 @@ class SlidingWindows(object):
             # Create the actual rectangles !
             for fx in range(fits[0]):
                 for fy in range(fits[1]):
-                    cx = int(offs[0] + (fx * int(win_size[0]) * overlap_perc))
-                    cy = int(offs[1] + (fy * int(win_size[1]) * overlap_perc))
-                    nx = int(cx + win_size[0])
-                    ny = int(cy + win_size[1])
+                    cx = min(max(int(offs[0] + (fx * int(win_size[0]) * overlap_perc)), 0), self._image_shape[1] - 1)
+                    cy = min(max(int(offs[1] + (fy * int(win_size[1]) * overlap_perc)), 0), self._image_shape[0] - 1)
+                    nx = min(max(int(cx + win_size[0]), 0), self._image_shape[1] - 1)
+                    ny = min(max(int(cy + win_size[1]), 0), self._image_shape[0] - 1)
 
                     # Push to result container
                     grids[win_size].append(((cx, cy), (nx, ny)))
@@ -83,11 +83,6 @@ class SlidingWindows(object):
                 cv2.imwrite('test_' + str(c) + '.png', img)
 
         return grids
-
-slide = SlidingWindows((720, 1270))
-slide.create_sliding_window_positions(min_shape=(64, 32), max_shape=(512, 256), num_scales=4, overlap_perc=0.8)
-
-
 
 
 

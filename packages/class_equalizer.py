@@ -9,7 +9,7 @@ class ClassEqualizer(object):
         pass
 
     @staticmethod
-    def get_splitted_and_classnormed_filelist(basepath='../datasets/course_dataset/', val_perc=0.3):
+    def get_splitted_and_classnormed_filelist(basepath='../datasets/course_dataset/', val_perc=0.05):
 
         # get the subdirectories in basepath folder
         subdirs = [subdir for subdir in os.walk(basepath)]

@@ -11,6 +11,7 @@ from skimage.feature import hog
 from packages.class_equalizer import ClassEqualizer
 from packages.batchgenerator import BatchGenerator
 from packages.imageaugmentation import ImageAugmenter
+from packages.feature_extraction import SlidingWindowFeatureExtractor
 
 """
 Training script
@@ -19,8 +20,16 @@ for testing several different classifiers from Scikit-learn
 and convolutional neuronal networks with keras.
 """
 
+train_num_batches = 5
+
 feature_file_name = 'feature_permutation_checkpoint.picklefile'
 score_file_name = 'complete_classifier_competition.picklefile'
+
+
+"""
+Read in the image file list and do the train, validation split.
+===========================================================
+"""
 
 class_eq = ClassEqualizer()
 
@@ -49,15 +58,24 @@ for i, c_set in enumerate([training_dict, validation_dict]):
 # convert to uint8
 val_y = np.uint8(val_y)
 
+
+"""
+Define image loading and preprocessing functions, as well 
+as the augmentation methods and batch generators for train and val.
+===========================================================
+"""
+
+
 # Define the function to load the images from file system
 def extract_xy_fn(x):
     img = cv2.imread(x[0])
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     return img, x[1], False  # the third return value means the 'mirrorable' flag from Behavioral Cloning Project
 
 
 # Define the preprocessing function
 def preprocessing(x):
-    img = cv2.resize(x, dsize=(64, 64), interpolation=cv2.INTER_CUBIC)
+    img = cv2.resize(x, dsize=(32, 32), interpolation=cv2.INTER_CUBIC)
     return img
 
 
@@ -96,24 +114,62 @@ if False:
         if i > 100:
             break
 
-# Create HOG Descriptors for each set with some different parameters to 'grid-search' the best parameters
-# for the HOG Descriptor. So lets create some ranges for num orientations, pixels_per_cell, cells_per_block and norm:
-normalize = [False]
-orientations = [9, 11]
-pixels_per_cell = [(8, 8), (16, 16), (32, 32)]
-cells_per_block = [(1, 1), (2, 2)]
+"""
+Do a grid search over different feature extraction parameter sets.
+Compute the features, scale them, train classifiers and evaluate them.
+Use class SlidingWindowFeatureExtractor for feature extraction.
+======================================================================
+"""
+
+bin_spatial_size = [(48, 48)]
+bin_spatial_color_cvt = [None]
+color_channel_hist_bins = [32]
+color_hist_color_cvt = [cv2.COLOR_RGB2HSV]
+hog_compute = [True]
+hog_color_cvt = [None]
+hog_channels = [None]
+hog_orient = [8]
+hog_px_per_cell = [(8, 8)]
+hog_cells_per_blk = [(2, 2)]
+hog_norm = [True]
 
 # Lets push this into an list of dictionaries, so each permutation has its own dictionary
-permutations = [dict({'orientation': orient, 'pixels_per_cell': px_per_cell,
-                      'cells_per_block': cells_pb, 'normalize': norm,
-                      'train_features': [], 'val_features': [],
-                      'train_labels': [], 'val_labels': []})
-                for orient in orientations
-                for px_per_cell in pixels_per_cell
-                for cells_pb in cells_per_block
-                for norm in normalize]
+permutations = [dict({'extractor': SlidingWindowFeatureExtractor(bin_spatial_size=bin_spat_size,
+                                                                 bin_spatial_color_cvt=bin_spat_cvt,
+                                                                 color_channel_hist_bins=color_chan_histbins,
+                                                                 color_hist_color_cvt=color_hist_cvt,
+                                                                 hog_compute=hog_doit,
+                                                                 hog_color_cvt=hog_cvt,
+                                                                 hog_channels=hog_chan,
+                                                                 hog_orient=hog_ori,
+                                                                 hog_px_per_cell=hog_px_pc,
+                                                                 hog_cells_per_blk=hog_cells_pb,
+                                                                 hog_norm=hog_no
+                                                                 ),
+                      'train_features': [],
+                      'val_features': [],
+                      'train_labels': [],
+                      'val_labels': [],
+                      'scaler': None,
+                      'label_encoder': None})
 
-# Now we have to compute the HOG Features for train_x and val_x for every parameter set!
+                for bin_spat_size in bin_spatial_size
+                for bin_spat_cvt in bin_spatial_color_cvt
+                for color_chan_histbins in color_channel_hist_bins
+
+                for color_hist_cvt in color_hist_color_cvt
+                for hog_doit in hog_compute
+                for hog_cvt in hog_color_cvt
+
+                for hog_chan in hog_channels
+                for hog_ori in hog_orient
+                for hog_px_pc in hog_px_per_cell
+                for hog_cells_pb in hog_cells_per_blk
+                for hog_no in hog_norm]
+
+print('Testing ' + str(len(permutations)) + ' combinations!')
+
+# Now we have to compute the features for train_x and val_x for every parameter set!
 # Check if we already have computed them:
 if os.path.isfile(feature_file_name):
     # Yes, load them !
@@ -122,16 +178,12 @@ if os.path.isfile(feature_file_name):
 else:
     # Take all the training images and create the features:
     print('Computing feature vectors..')
-    for i in tqdm(range(training_batchgen.n)):
+    for i in tqdm(range(training_batchgen.n * train_num_batches)):
         x, y = training_batchgen.custom_next()
+
         # Go over parameter sets
         for parameter_set in permutations:
-            feature_descriptor = hog(image=cv2.cvtColor(np.uint8(x[0]), cv2.COLOR_RGB2GRAY),
-                                     orientations=parameter_set['orientation'],
-                                     pixels_per_cell=parameter_set['pixels_per_cell'],
-                                     cells_per_block=parameter_set['cells_per_block'],
-                                     transform_sqrt=parameter_set['normalize'],
-                                     visualise=False)
+            feature_descriptor = parameter_set['extractor'].compute_features(x[0].astype(np.uint8))
 
             parameter_set['train_features'].append(feature_descriptor)
             parameter_set['train_labels'].append(y)
@@ -140,12 +192,7 @@ else:
         x, y = val_batchgen.custom_next()
         # Go over parameter sets
         for parameter_set in permutations:
-            feature_descriptor = hog(image=cv2.cvtColor(np.uint8(x[0]), cv2.COLOR_RGB2GRAY),
-                                     orientations=parameter_set['orientation'],
-                                     pixels_per_cell=parameter_set['pixels_per_cell'],
-                                     cells_per_block=parameter_set['cells_per_block'],
-                                     transform_sqrt=parameter_set['normalize'],
-                                     visualise=False)
+            feature_descriptor = parameter_set['extractor'].compute_features(x[0].astype(np.uint8))
 
             parameter_set['val_features'].append(feature_descriptor)
             parameter_set['val_labels'].append(y)
@@ -159,19 +206,25 @@ else:
 
 # This is done for each setup (permutation) individually.
 print('Scaling feature vectors..')
+
 for parameter_set in tqdm(permutations):
     scaler = StandardScaler()
-    scaler.fit_transform(parameter_set['train_features'])
+    scaler.fit(parameter_set['train_features'])
+
+    parameter_set['train_features'] = scaler.transform(parameter_set['train_features'])
     parameter_set['val_features'] = scaler.transform(parameter_set['val_features'])
+    parameter_set['scaler'] = scaler
+    parameter_set['label_encoder'] = label_enc
 
 # Now we want to know how these combinations of parameters of the HOG Descriptor performs
 # for every tested classifier method: tree, ensemble, svm
 print('Testing classifier..')
 for parameter_set in permutations:
-    for classifier in [(linear_model.LogisticRegression(), 'LogisticRegression'),
-                       (tree.DecisionTreeClassifier(), 'DecisionTree'),
-                       (ensemble.AdaBoostClassifier(), 'AdaBoost'),
+    for classifier in [# (linear_model.LogisticRegression(), 'LogisticRegression'),
+                       # (tree.DecisionTreeClassifier(), 'DecisionTree'),
+                       # (ensemble.AdaBoostClassifier(), 'AdaBoost'),
                        (svm.SVC(), 'SVM')]:
+                       # (svm.LinearSVC(loss='hinge'), 'LinearSVM')
         # Fit the classifier on the training-data
         classifier[0].fit(np.array(parameter_set['train_features']),
                           np.array(parameter_set['train_labels']).ravel())
@@ -180,7 +233,7 @@ for parameter_set in permutations:
         mean_acc = classifier[0].score(np.array(parameter_set['val_features']),
                                        np.array(parameter_set['val_labels']).ravel())
 
-        print(classifier[1]+' scored: '+str(mean_acc))
+        print(classifier[1] + ' scored: '+str(mean_acc))
 
         # The competition-key of classifiers into container
         results_key = 'competition'
@@ -190,6 +243,12 @@ for parameter_set in permutations:
         # Push the result and the classifier object into the competition-container
         if classifier[1] not in parameter_set[results_key]:
             parameter_set[results_key][classifier[1]] = (classifier, mean_acc)
+
+        # Remove the features from container
+        parameter_set['train_features'] = []
+        parameter_set['train_labels'] = []
+        parameter_set['val_features'] = []
+        parameter_set['val_labels'] = []
 
 print('Dumping classifiers competition..')
 pickle.dump(permutations, open(score_file_name, 'wb'))
