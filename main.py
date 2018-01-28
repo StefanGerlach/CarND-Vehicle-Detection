@@ -42,7 +42,7 @@ video_file = 'project_video.mp4'
 """ Definition of ROI """
 image_height_roi = [300, -100]
 image_scale_factor = 0.5
-image_sliding_window_scales = [1.0, 0.5, 0.375]
+image_sliding_window_scales = [1.0, 0.5, 0.25]
 
 
 """ Define the preprocessing function """
@@ -105,10 +105,10 @@ while clip.isOpened():
             sliding_win_gen = SlidingWin(scaled_frame.shape)
 
             # Create the grid rectangles
-            grid = sliding_win_gen.create_sliding_window_positions(min_shape=(32, 32),
-                                                                   max_shape=(32, 32),
+            grid = sliding_win_gen.create_sliding_window_positions(min_shape=(48, 48),
+                                                                   max_shape=(48, 48),
                                                                    num_scales=1,
-                                                                   overlap_perc=0.8)
+                                                                   overlap_perc=0.5)
 
             # Compute the Features
             grid_with_features = feature_extractor.compute_on_windows_naiv(scaled_frame, grid, feature_scaler, preprocessing)
@@ -149,7 +149,9 @@ while clip.isOpened():
                 cv2.rectangle(debug_draw, (rect[0][0], rect[0][1]), (rect[1][0], rect[1][1]), color, thickness)
 
         # Filter car detection rectangles by using a heatmap and thresholding it
-        car_rectangles = filter_detections(car_rectangles, (frame.shape[0], frame.shape[1]), rect_overlap_thesh=0.25)
+        car_rectangles = filter_detections(car_rectangles, (frame.shape[0], frame.shape[1]),
+                                           heatmap_threshold=3,
+                                           rect_overlap_thesh=0.25)
 
         if False:
             # Draw raw detections into image
