@@ -20,7 +20,7 @@ for testing several different classifiers from Scikit-learn
 and convolutional neuronal networks with keras.
 """
 
-train_num_batches = 5
+train_num_batches = 2
 
 feature_file_name = 'feature_permutation_checkpoint.picklefile'
 score_file_name = 'complete_classifier_competition.picklefile'
@@ -75,22 +75,22 @@ def extract_xy_fn(x):
 
 # Define the preprocessing function
 def preprocessing(x):
-    img = cv2.resize(x, dsize=(32, 32), interpolation=cv2.INTER_CUBIC)
+    img = cv2.resize(x, dsize=(48, 48), interpolation=cv2.INTER_CUBIC)
     return img
 
 
 # Define the Image Augmentation methods
 train_augmenter = ImageAugmenter()
 
-train_augmenter.add_gaussian_noise(prob=0.1)
-train_augmenter.add_simplex_noise(prob=0.1, multiplicator=0.7)
-train_augmenter.add_average_blur(prob=0.1, kernel=7)
-train_augmenter.add_contrast_normalization(prob=0.1, alpha=0.5)
-train_augmenter.add_contrast_normalization(prob=0.1, alpha=1.5)
+train_augmenter.add_gaussian_noise(prob=0.2, scale=10.0)
+train_augmenter.add_simplex_noise(prob=0.2, multiplicator=0.7)
+train_augmenter.add_average_blur(prob=0.2, kernel=3)
+train_augmenter.add_contrast_normalization(prob=0.2, alpha=0.75)
+train_augmenter.add_contrast_normalization(prob=0.2, alpha=1.25)
 train_augmenter.add_flip_left_right(prob=0.5)
-train_augmenter.add_random_crop(prob=0.1)
-train_augmenter.add_multiply(prob=0.1, mul=0.5)
-train_augmenter.add_multiply(prob=0.1, mul=1.5)
+train_augmenter.add_random_crop(prob=0.2, max_cropping=(4, 4, 4, 4))
+train_augmenter.add_multiply(prob=0.2, mul=0.75)
+train_augmenter.add_multiply(prob=0.2, mul=1.25)
 
 # Create a Batch-Generator to have the possibility to augment and preprocess the images
 training_batchgen = BatchGenerator(batch_size=1, n_classes=len(label_enc.classes_), dataset=list(zip(train_x, train_y)),
@@ -121,7 +121,7 @@ Use class SlidingWindowFeatureExtractor for feature extraction.
 ======================================================================
 """
 
-bin_spatial_size = [(48, 48)]
+bin_spatial_size = [(32, 32)]
 bin_spatial_color_cvt = [None]
 color_channel_hist_bins = [32]
 color_hist_color_cvt = [cv2.COLOR_RGB2HSV]

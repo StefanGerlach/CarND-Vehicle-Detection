@@ -74,8 +74,8 @@ class SlidingWindows(object):
                     # DEBUG paint it into such an image !
                     if debug_paint:
                         # Random color and thickness
-                        thickness = int(rnd.uniform(1, 5))
-                        color = int(rnd.uniform(125, 255))
+                        thickness = int(rnd.uniform(2, 2))
+                        color = int(rnd.uniform(255, 255))
                         cv2.rectangle(img, (cx, cy), (nx, ny), color, thickness)
 
             # DEBUG paint it into such an image !
