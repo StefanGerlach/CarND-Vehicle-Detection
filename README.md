@@ -208,6 +208,13 @@ Afterwards, a thresholding function is applied to binarize the heatmap:
 
 In that binary image the contours are detected with OpenCV **findContours()**-function. To merge rectangles, I check what rectangles "share" pixels of a detected contour for a given percentage of pixels. All rectangles that share pixels on a contour, are merged and the bounding box around them is calculated in [**filter_dectections()**](packages/sliding_window_filter.py)
 
+![Filtered detections][image13]
+
+
+In the final step, the rectangles that define a vehicle detection are mapped back to the original image space:
+
+
+![Frame with detections][image14]
 
 
 ## Reflection
