@@ -105,10 +105,10 @@ while clip.isOpened():
             sliding_win_gen = SlidingWin(scaled_frame.shape)
 
             # Create the grid rectangles
-            grid = sliding_win_gen.create_sliding_window_positions(min_shape=(48, 48),
-                                                                   max_shape=(48, 48),
+            grid = sliding_win_gen.create_sliding_window_positions(min_shape=(32, 32),
+                                                                   max_shape=(32, 32),
                                                                    num_scales=1,
-                                                                   overlap_perc=0.5)
+                                                                   overlap_perc=0.8)
 
             # Compute the Features
             grid_with_features = feature_extractor.compute_on_windows_naiv(scaled_frame, grid, feature_scaler, preprocessing)
