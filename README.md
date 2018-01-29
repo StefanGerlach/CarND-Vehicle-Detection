@@ -20,7 +20,7 @@
 
 
 [![Youtube Link][image1]](https://youtu.be/lwnCYVOESOQ "Udacity Self Driving Car ND Project 5 - Vehicle Detection")
-
+(click on this image to watch the video on YouTube)
 
 In this repository I describe my approach to write a software pipeline that identifies other vehicles in a video file. The precise requirements of this project are:
 
@@ -217,12 +217,19 @@ In the final step, the rectangles that define a vehicle detection are mapped bac
 ![Frame with detections][image14]
 
 
+## Result Video
+
+I uploaded the resulting image with inpainted vehicle-detections on YouTube. Please click on the following image to watch the video:
+
+[![Youtube Link][image1]](https://youtu.be/lwnCYVOESOQ "Udacity Self Driving Car ND Project 5 - Vehicle Detection")
+
+
 ## Reflection
 
 Drawbacks:
 * Long process of 'feature-engineering'.
 * Implemented pipeline extremely slow.
-* Alot of false positives.
+* Alot of false positives and some false negatives.
 
 To overcome these problems one might try:
 * Use a convolutional neural network that 'learns' to extract the features itself.
