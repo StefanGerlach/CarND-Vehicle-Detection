@@ -167,7 +167,6 @@ All tested combinations are dumped to filesystem, for later usage during video f
 To read the file I use my class [**CompetitionClassifierLoader**](packages/classify.py)
 
 
-
 ## Video Frame Processing Pipeline
 
 To use the trained classifier, the class [**CompetitionClassifierLoader**](packages/classify.py) loads the best performing classifier plus Scaler and LabelEncoder from file. For every incoming video frame, the following pipeline is processed:
@@ -196,14 +195,22 @@ Whereas on every scale and every rectangle the features are extracted and classi
 ![Raw detections][image10]
 
 
-To filter and merge the detections of cars in the ROI, I create the heatmap by adding a value of 1 into an image for every detection rectangle. The result looks like this:
+### Improving Performance / Reliability of the Classifier
+
+Having a look on the raw detections shows that different ROIs close to each other have been detected as a car. Nevertheless, there are **a lot** of false positive detections over the video. Some of them are still visible in my submission video, but I could manage to significant reduce the number of false positive detections. 
+
+*NOTED:* At the beginning of the project I started using *only* HOG features, that led to massive false positive detections, so the addition of the raw image pixel values plus color histogram features helped a lot. After that I grid-searched the final combination of features.
+
+To really improve the reliability I only take car- (classified as car) rectangles, that have other car rectangles close to them. I did this by the method mentioned in the course material - creating a heatmap. The heatmap is created by adding a value of 1 into the heatmap-image for every detection rectangle. The result looks like this:
 
 ![Detections heatmap][image11]
 
-
-Afterwards, a thresholding function is applied to binarize the heatmap:
+To filter out only rectangles that have other car-rectangles close to them, I thresholded the heatmap by an empirically estimated threshold (t=3). Only if t rectangles overlap, the area seems to be really a car. After having thresholded the heatmap, the resulting binary image looks like this:
 
 ![Binarzied heatmap][image12]
+
+
+### Merge and Postprocess Detections
 
 
 In that binary image the contours are detected with OpenCV **findContours()**-function. To merge rectangles, I check what rectangles "share" pixels of a detected contour for a given percentage of pixels. All rectangles that share pixels on a contour, are merged and the bounding box around them is calculated in [**filter_dectections()**](packages/sliding_window_filter.py)
